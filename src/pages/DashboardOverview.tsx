@@ -14,7 +14,33 @@ import { DashboardGrid } from '@/components/DashboardGrid';
 import { StatStrip, StatStripItem } from '@/components/StatCard';
 import { WorkList } from '@/components/WorkList';
 import { Button } from '@/components/ui/button';
-import { PublicPageQr, usePublicPageLink } from '@/components/widgets/PublicPageQr';
+import { qrSvgString } from '@/components/widgets/QrCode';
+import { usePublicPageLink } from '@/components/widgets/PublicPageQr';
+
+const esc = (v: string) => v.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+
+function openQrTab(title: string, link: string, labels: { png: string; svg: string }) {
+  const svg = qrSvgString(link, { margin: 4 });
+  const file = (title.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '') || 'qr-code').slice(0, 60);
+  /* i18n-exempt */
+  const html = tx`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title>
+<style>html,body{margin:0;height:100%;font-family:system-ui,sans-serif;background:#fff;color:#111}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:2vh 4vw;box-sizing:border-box;text-align:center}
+h1{margin:0;font-size:clamp(1.5rem,4vw,3rem)}#qr{height:62vh;width:62vh;max-width:90vw;max-height:90vw}#qr svg{width:100%;height:100%}
+p{margin:0;word-break:break-all;font-size:clamp(.9rem,1.6vw,1.3rem);color:#444}
+.b{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}button{font:inherit;padding:.6em 1.2em;border-radius:8px;border:1px solid #888;background:#f4f4f4;cursor:pointer}@media print{.b{display:none}}</style></head>
+<body><h1>${esc(title)}</h1><div id="qr">${svg}</div><p>${esc(link)}</p>
+<div class="b"><button id="png">${esc(labels.png)}</button><button id="svg">${esc(labels.svg)}</button></div>
+<script>
+var F=${JSON.stringify(file)};
+function dl(u,n){var a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();a.remove();}
+function src(){return document.querySelector('#qr svg').outerHTML;}
+document.getElementById('svg').onclick=function(){var u=URL.createObjectURL(new Blob([src()],{type:'image/svg+xml'}));dl(u,F+'.svg');setTimeout(function(){URL.revokeObjectURL(u)},1000);};
+document.getElementById('png').onclick=function(){var u=URL.createObjectURL(new Blob([src()],{type:'image/svg+xml'}));var i=new Image();i.onload=function(){var c=document.createElement('canvas');c.width=c.height=1024;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.fillStyle='#fff';x.fillRect(0,0,1024,1024);x.drawImage(i,0,0,1024,1024);c.toBlob(function(b){var p=URL.createObjectURL(b);dl(p,F+'.png');setTimeout(function(){URL.revokeObjectURL(p)},1000);},'image/png');URL.revokeObjectURL(u);};i.src=u;};
+</script></body></html>`;
+  const w = window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+  if (!w) toast.error(tx('Der Browser hat den neuen Tab blockiert.'));
+}
 
 type Filter = 'all' | 'offen' | 'ohneFinal';
 
@@ -24,7 +50,7 @@ function fmtSlot(beginn?: string, ende?: string): string {
   if (!beginn) return '—';
   const loc = { locale: dateFnsLocale() };
   const b = new Date(beginn);
-  let s = format(b, 'EEE, dd.MM.yyyy HH:mm', loc);
+  let s = format(b, 'EEE, dd.MM.yyyy, HH:mm', loc);
   if (ende) {
     const e = new Date(ende);
     s += format(b, 'yyyy-MM-dd') === format(e, 'yyyy-MM-dd') ? `–${format(e, 'HH:mm')}` : ` – ${format(e, 'dd.MM. HH:mm')}`;
@@ -32,7 +58,7 @@ function fmtSlot(beginn?: string, ende?: string): string {
   return s;
 }
 
-function SurveyCard({ u, slots, answers, onOpen, onFinal, onClose, finalLabel }: {
+function SurveyCard({ u, slots, answers, onOpen, onFinal, onClose, finalLabel, finalText }: {
   u: EnrichedUmfragen;
   slots: SlotStat[];
   answers: number;
@@ -40,8 +66,8 @@ function SurveyCard({ u, slots, answers, onOpen, onFinal, onClose, finalLabel }:
   onFinal: (() => void) | null;
   onClose: (() => void) | null;
   finalLabel: string;
+  finalText?: string;
 }) {
-  const [showQr, setShowQr] = useState(false);
   const { link } = usePublicPageLink('umfragen', u.record_id);
   const closed = lookupKey(u.fields.status) === 'geschlossen';
   const best = slots.length > 0 ? [...slots].sort((a, b) => b.ja - a.ja || a.vielleicht - b.vielleicht)[0] : undefined;
@@ -65,10 +91,10 @@ function SurveyCard({ u, slots, answers, onOpen, onFinal, onClose, finalLabel }:
           </span>
         </div>
 
-        {u.finaler_terminName ? (
+        {u.finaler_terminName || finalText ? (
           <div className="flex items-center gap-2 text-sm font-medium min-w-0">
             <IconCircleCheck size={16} className="shrink-0 text-emerald-600" />
-            <span className="truncate">{tx('Finaler Termin')}: {u.finaler_terminName}</span>
+            <span className="truncate">{tx('Finaler Termin')}: {finalText ?? u.finaler_terminName}</span>
           </div>
         ) : hasBest ? (
           <div className="flex items-center gap-2 text-sm min-w-0">
@@ -88,7 +114,7 @@ function SurveyCard({ u, slots, answers, onOpen, onFinal, onClose, finalLabel }:
           <Button size="sm" variant="outline" disabled={!link} onClick={() => link && window.open(link, '_blank', 'noopener')}>
             <IconExternalLink size={16} className="shrink-0" /> {tx('Öffnen')}
           </Button>
-          <Button size="sm" variant="outline" disabled={!link} onClick={() => setShowQr(v => !v)}>
+          <Button size="sm" variant="outline" disabled={!link} onClick={() => link && openQrTab(u.fields.titel ?? '', link, { png: tx('Als PNG herunterladen'), svg: tx('Als SVG herunterladen') })}>
             <IconQrcode size={16} className="shrink-0" /> {tx('QR-Code')}
           </Button>
           {!closed && onFinal && (
@@ -98,11 +124,6 @@ function SurveyCard({ u, slots, answers, onOpen, onFinal, onClose, finalLabel }:
             <Button size="sm" onClick={onClose}>{tx('Umfrage schließen')}</Button>
           )}
         </div>
-        {showQr && link && (
-          <div className="flex justify-center pt-1">
-            <PublicPageQr entity="umfragen" recordId={u.record_id} size={160} />
-          </div>
-        )}
       </div>
     </div>
   );
@@ -243,6 +264,12 @@ export default function DashboardOverview({ data }: { data: DashboardData }) {
                       onFinal={hasFinal(u) ? null : goFinal}
                       onClose={goClose}
                       finalLabel={tx('Besten Termin festlegen')}
+                      finalText={(() => {
+                        const fid = extractRecordId(u.fields.finaler_termin);
+                        const ft = fid ? (stats.slotsBy.get(u.record_id) ?? []).find(x => x.id === fid) ?? terminvorschlaege.find(x => x.record_id === fid) : undefined;
+                        if (!ft) return undefined;
+                        return 'fields' in ft ? fmtSlot(ft.fields.beginn, ft.fields.ende) : fmtSlot(ft.beginn, ft.ende);
+                      })()}
                     />
                   );
                 })}

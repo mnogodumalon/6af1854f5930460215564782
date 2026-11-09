@@ -105,6 +105,9 @@ export function useUmfrageAnlegenFlow(options: UmfrageAnlegenFlowOptions = {}) {
     steps: only(steps, ["ende", "beginn"]) as Record<string, number>,
     initial: only(options.initial as FormValues | undefined, ["ende", "beginn"]),
     messages: only(options.messages as Record<string, string> | undefined, ["ende", "beginn"]),
+    validators: {
+      ende: (v, vals) => (vals.beginn && v && String(v) <= String(vals.beginn) ? 'Das Ende muss nach dem Beginn liegen.' : undefined),
+    },
   });
   const [terminvorschlaegeEntries, setTerminvorschlaegeEntries] = useState<ListEntry[]>(() => readJourneyExtra<ListEntry[]>('umfrage-anlegen', 'list:terminvorschlaege') ?? []);
   useEffect(() => { writeJourneyExtra('umfrage-anlegen', 'list:terminvorschlaege', terminvorschlaegeEntries.length ? terminvorschlaegeEntries : null); }, [terminvorschlaegeEntries]);

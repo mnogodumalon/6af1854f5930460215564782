@@ -108,6 +108,8 @@ export interface StepFormOptions {
    *  is an instruction („Bitte … eingeben.“), and a page may say it better. */
   messages?: Record<string, string | FieldMessages>;
   initial?: FormValues;
+  /** Extra per-field rule, run after the built-in ones: returns the sentence to show, or undefined. */
+  validators?: Record<string, (value: unknown, values: FormValues) => string | undefined>;
   /** Prefix for element ids (default: the entity key). */
   id?: string;
   /** Browser autofill of the person's OWN data (given-name, email, postal-code, …
@@ -455,6 +457,8 @@ export function useStepForm<E extends EntityKey>(entity: E, options: StepFormOpt
         default:
           break;
       }
+      const extra = options.validators?.[key]?.(v, vals);
+      if (extra) return extra;
       if (asTo) {
         const from = vals[asTo.from];
         if (!isEmptyValue(from)) {

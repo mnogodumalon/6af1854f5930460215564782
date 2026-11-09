@@ -456,6 +456,12 @@ export async function getAppGroups(): Promise<AppGroupInfo[]> {
   return _cachedAppGroups;
 }
 
+function assertEndAfterStart(fields: { beginn?: string; ende?: string }) {
+  if (fields.beginn && fields.ende && fields.ende <= fields.beginn) {
+    throw new Error('Das Ende muss nach dem Beginn liegen.');
+  }
+}
+
 export class LivingAppsService {
   // --- UMFRAGEN ---
   static async getUmfragen(): Promise<Umfragen[]> {
@@ -522,10 +528,12 @@ export class LivingAppsService {
     return hydrateRecords([record], 'terminvorschlaege')[0];
   }
   static async createTerminvorschlaegeEntry(fields: CreateTerminvorschlaege): Promise<MutationResult> {
+    assertEndAfterStart(fields);
     const data = await callApi('POST', `/apps/${APP_IDS.TERMINVORSCHLAEGE}/records`, { fields: cleanFieldsForApi(fields as any, 'terminvorschlaege') });
     return { ...data, record_id: data.id };
   }
   static async updateTerminvorschlaegeEntry(id: string, fields: Partial<CreateTerminvorschlaege>): Promise<MutationResult> {
+    assertEndAfterStart(fields);
     const data = await callApi('PATCH', `/apps/${APP_IDS.TERMINVORSCHLAEGE}/records/${id}`, { fields: cleanFieldsForApi(fields as any, 'terminvorschlaege') });
     return { ...data, record_id: data.id };
   }
