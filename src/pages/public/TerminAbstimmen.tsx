@@ -218,9 +218,6 @@ export default function TerminAbstimmen() {
   return (
     <PublicShell title={fieldText(umfrage, 'titel')} description={beschreibung || undefined} wide>
       <div className="space-y-5">
-        <p className="text-sm text-muted-foreground" data-key="umfrage">
-          {tx('Umfrage')}: <span className="font-medium text-foreground">{fieldText(umfrage, 'titel')}</span>
-        </p>
         {ort && <p className="text-sm text-muted-foreground">{tx('Ort')}: <span className="font-medium text-foreground">{ort}</span></p>}
 
         {closed && (
@@ -234,6 +231,8 @@ export default function TerminAbstimmen() {
 
         {!closed && termine.length > 0 && (
           <div className="grid grid-cols-1 gap-3 rounded-xl border bg-muted/20 p-3 sm:grid-cols-2">
+            <input type="hidden" name="umfrage" value={linkedId} />
+            <input type="hidden" name="zeilen_kennung" value={rowId} />
             <Input
               value={vorname}
               onChange={e => setVorname(e.target.value)}
@@ -289,6 +288,7 @@ export default function TerminAbstimmen() {
                           {a ? (
                             <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${ANSWER_STYLE[a]}`}>
                               <AnswerIcon a={a} />
+                              <span className="sr-only">{a === 'ja' ? tx('Ja') : a === 'vielleicht' ? tx('Vielleicht') : tx('Nein')}</span>
                             </span>
                           ) : (
                             <span className="text-muted-foreground">–</span>
@@ -305,18 +305,17 @@ export default function TerminAbstimmen() {
                     </td>
                     {termine.map(t => (
                       <td key={t.id} className="p-2 text-center" data-key="termin_1">
-                        <div className="inline-flex gap-1" role="radiogroup" data-key="antwort_1" aria-label={terminLabel(t)}>
+                        <div className="inline-flex gap-1" role="group" data-key="antwort_1" aria-label={terminLabel(t)}>
                           {(['ja', 'vielleicht', 'nein'] as Answer[]).map(a => {
                             const on = answers[t.id] === a;
                             return (
                               <button
                                 key={a}
                                 type="button"
-                                role="radio"
-                                aria-checked={on}
+                                aria-pressed={on}
                                 aria-label={a === 'ja' ? tx('Ja') : a === 'vielleicht' ? tx('Vielleicht') : tx('Nein')}
                                 onClick={() => setAnswers(prev => ({ ...prev, [t.id]: a }))}
-                                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${on ? ANSWER_STYLE[a] : 'bg-background text-muted-foreground'}`}
+                                className={`flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full border transition-colors ${on ? ANSWER_STYLE[a] : 'bg-background text-muted-foreground'}`}
                               >
                                 <AnswerIcon a={a} />
                               </button>
@@ -359,9 +358,6 @@ export default function TerminAbstimmen() {
             {sent && !submit.error && (
               <p role="status" className="text-sm font-medium text-emerald-700">{tx('Danke, deine Antwort ist gespeichert.')}</p>
             )}
-            <p className="text-xs text-muted-foreground" data-key="zeilen_kennung">
-              {tx('Eindeutige Kennung der Zeile')}: <span className="font-mono">{rowId}</span>
-            </p>
             <Button type="button" className="w-full sm:w-auto" disabled={submit.submitting} onClick={() => void onSend()}>
               {submit.submitting ? tx('Wird gespeichert …') : tx('Antwort speichern')}
             </Button>

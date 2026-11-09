@@ -109,14 +109,14 @@
         {
           "entity": "umfragen",
           "columns": [
+            "titel",
             "beschreibung",
             "ort",
             "status",
-            "titel",
             "finaler_termin"
           ],
           "filter": null,
-          "max_records": 500
+          "max_records": null
         },
         {
           "entity": "terminvorschlaege",
@@ -126,7 +126,7 @@
             "umfrage"
           ],
           "filter": null,
-          "max_records": 500
+          "max_records": null
         },
         {
           "entity": "antworten",
@@ -139,7 +139,7 @@
             "termin_1"
           ],
           "filter": null,
-          "max_records": 500
+          "max_records": null
         }
       ],
       "creates": [
@@ -158,7 +158,7 @@
       ],
       "visitor_fields": [],
       "page_sets": [],
-      "brief": "# Public page `termin-abstimmen`\nTeilnehmende öffnen den Link einer einzelnen Umfrage ohne Anmeldung und sehen nur diese Umfrage mit Titel, Beschreibung, Ort und allen Terminvorschlägen. Die Tabelle zeigt oben die Termine und darunter die Namen aller bisherigen Teilnehmenden mit ihren Antworten. In der letzten Zeile tragen sie Vor- und Nachname ein und wählen je Termin Ja, Vielleicht oder Nein. Ein Klick speichert die ganze Zeile, die danach sofort in der Tabelle erscheint. Eine Zeilenkennung, die die Seite im Browser je Einsendung erzeugt, verhindert doppelte Zeilen. Unter jedem Termin stehen die Anzahl Ja und Vielleicht, der Termin mit den meisten Ja ist hervorgehoben. Ist die Umfrage geschlossen, zeigt die Seite den finalen Termin und die Tabelle, Abstimmen ist dann nicht mehr möglich. Die Seite ist für das Handy ausgelegt.\n\n## Lists (declare exactly these in the surface)\n- `umfragen`: columns `beschreibung`, `ort`, `status`, `titel`, `finaler_termin`, max_records 500\n- `terminvorschlaege`: columns `beginn`, `ende`, `umfrage`, max_records 500\n- `antworten`: columns `zeilen_kennung`, `teilnehmer_vorname`, `teilnehmer_nachname`, `antwort_1`, `umfrage`, `termin_1`, max_records 500\n\n## Creates (declare exactly these in the surface)\n- `antworten`: visitor fields `umfrage`, `termin_1`, `antwort_1`, `zeilen_kennung`, `teilnehmer_vorname`, `teilnehmer_nachname`\n\n## Availability — mechanical, write nothing for it\nA picker (`useRecordSearch`) never offers a record another record already takes (a booked slot) — the layer leaves it out. To SHOW booked periods, call `useOccupancy(port, '<entity>')` and hand `blocked` to AvailabilityRangePicker; the integration gives the page exactly that read (dates or the reference, never who booked). Never declare a list of bookings with names or contacts to work availability out yourself.\n\nPublish: never from here — every page starts as a draft; the owner publishes it under Verwaltung → Öffentliche Seiten after the build (the plan wishes it published)\n"
+      "brief": "# Public page `termin-abstimmen`\nTeilnehmende öffnen den Link einer einzelnen Umfrage ohne Anmeldung und sehen nur diese Umfrage mit Titel, Beschreibung, Ort und allen Terminvorschlägen. Die Tabelle zeigt oben die Termine und darunter die Namen aller bisherigen Teilnehmenden mit ihren Antworten. In der letzten Zeile tragen sie Vor- und Nachname ein und wählen je Termin Ja, Vielleicht oder Nein. Ein Klick speichert die ganze Zeile, die danach sofort in der Tabelle erscheint. Eine Zeilenkennung, die die Seite im Browser je Einsendung erzeugt, verhindert doppelte Zeilen. Unter jedem Termin stehen die Anzahl Ja und Vielleicht, der Termin mit den meisten Ja ist hervorgehoben. Ist die Umfrage geschlossen, zeigt die Seite den finalen Termin und die Tabelle, Abstimmen ist dann nicht mehr möglich. Die Seite ist für das Handy ausgelegt.\n\n## Lists (declare exactly these in the surface)\n- `umfragen`: columns `titel`, `beschreibung`, `ort`, `status`, `finaler_termin`\n- `terminvorschlaege`: columns `beginn`, `ende`, `umfrage`\n- `antworten`: columns `zeilen_kennung`, `teilnehmer_vorname`, `teilnehmer_nachname`, `antwort_1`, `umfrage`, `termin_1`\n\n## Creates (declare exactly these in the surface)\n- `antworten`: visitor fields `umfrage`, `termin_1`, `antwort_1`, `zeilen_kennung`, `teilnehmer_vorname`, `teilnehmer_nachname`\n\n## Availability — mechanical, write nothing for it\nA picker (`useRecordSearch`) never offers a record another record already takes (a booked slot) — the layer leaves it out. To SHOW booked periods, call `useOccupancy(port, '<entity>')` and hand `blocked` to AvailabilityRangePicker; the integration gives the page exactly that read (dates or the reference, never who booked). Never declare a list of bookings with names or contacts to work availability out yourself.\n\nPublish: never from here — every page starts as a draft; the owner publishes it under Verwaltung → Öffentliche Seiten after the build (the plan wishes it published)\n"
     }
   ],
   "tools": [
@@ -209,7 +209,8 @@
     "views": [],
     "writes": [],
     "wishes": [
-      "„termin-abstimmen“ ändern: Am Handy (375 px) kann niemand abstimmen: Die fixierte Namensspalte enthält die Eingabefelder für Vor- und Nachname, ist rund 400 px breit und überdeckt alle Ja/Vielleicht/Nein-Knöpfe. Bitte so umbauen:\n1. Vorname und Nachname stehen in einem eigenen Block ÜBER der Tabelle (volle Breite, untereinander auf dem Handy).\n2. Die Tabelle hat als fixierte erste Spalte nur noch die Namen als Text, höchstens 35 % der Bildschirmbreite (max. 9rem), Text darf umbrechen. Die Eingabezeile in der Tabelle enthält in der ersten Spalte nur das Wort „Du“ oder den eingetippten Namen, daneben je Termin die drei Knöpfe Ja/Vielleicht/Nein (mind. 40 px Tippfläche).\n3. Alles andere bleibt genau so: dieselben Felder, dieselben Datensätze je Termin, Summen, Hervorhebung, geschlossene Umfrage, Offline-Sicherung, Link-Parameter umfrage."
+      "„termin-abstimmen“ ändern: Am Handy (375 px) kann niemand abstimmen: Die fixierte Namensspalte enthält die Eingabefelder für Vor- und Nachname, ist rund 400 px breit und überdeckt alle Ja/Vielleicht/Nein-Knöpfe. Bitte so umbauen:\n1. Vorname und Nachname stehen in einem eigenen Block ÜBER der Tabelle (volle Breite, untereinander auf dem Handy).\n2. Die Tabelle hat als fixierte erste Spalte nur noch die Namen als Text, höchstens 35 % der Bildschirmbreite (max. 9rem), Text darf umbrechen. Die Eingabezeile in der Tabelle enthält in der ersten Spalte nur das Wort „Du“ oder den eingetippten Namen, daneben je Termin die drei Knöpfe Ja/Vielleicht/Nein (mind. 40 px Tippfläche).\n3. Alles andere bleibt genau so: dieselben Felder, dieselben Datensätze je Termin, Summen, Hervorhebung, geschlossene Umfrage, Offline-Sicherung, Link-Parameter umfrage.",
+      "„termin-abstimmen“ ändern: Nur Feinschliff an der Darstellung, sonst bleibt alles genau gleich (Felder, Datensätze je Termin, Summen, Hervorhebung, Namensblock über der Tabelle, schmale fixe Spalte, geschlossene Umfrage, Offline, Link-Parameter umfrage):\n1. Die Knöpfe Ja/Vielleicht/Nein in der Eingabezeile sind mindestens 44 × 44 px groß und haben aria-label „Ja“, „Vielleicht“, „Nein“ sowie aria-pressed.\n2. In den Tabellenzellen der bisherigen Antworten steht neben dem Symbol ein für Bildschirmleser lesbarer Text (sr-only „Ja“, „Vielleicht“, „Nein“).\n3. Die Zeile „Eindeutige Kennung der Zeile: …“ und die Zeile „Umfrage: …“ werden NICHT angezeigt, auch nicht in der Danke-Meldung. Kennung und Umfrage werden weiterhin intern gesetzt und mitgesendet, nur unsichtbar."
     ]
   }
 }
