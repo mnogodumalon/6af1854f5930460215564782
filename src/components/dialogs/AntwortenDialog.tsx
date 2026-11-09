@@ -382,7 +382,7 @@ export function AntwortenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="zeilen_kennung">{labelFor('zeilen_kennung')}</Label>
         <Input
           id="zeilen_kennung"
-          placeholder="z. B. ANT-2026-001"
+          placeholder=""
           value={fields.zeilen_kennung ?? ''}
           onChange={e => setFields(f => ({ ...f, zeilen_kennung: e.target.value }))}
         />
@@ -393,7 +393,7 @@ export function AntwortenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="teilnehmer_vorname">{labelFor('teilnehmer_vorname')} <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input
           id="teilnehmer_vorname"
-          placeholder="z. B. Anna"
+          placeholder=""
           value={fields.teilnehmer_vorname ?? ''}
           onChange={e => setFields(f => ({ ...f, teilnehmer_vorname: e.target.value }))}
           required
@@ -408,7 +408,7 @@ export function AntwortenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="teilnehmer_nachname">{labelFor('teilnehmer_nachname')} <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input
           id="teilnehmer_nachname"
-          placeholder="z. B. Müller"
+          placeholder=""
           value={fields.teilnehmer_nachname ?? ''}
           onChange={e => setFields(f => ({ ...f, teilnehmer_nachname: e.target.value }))}
           required
@@ -469,7 +469,7 @@ export function AntwortenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="umfrage">{labelFor('umfrage')} <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Combobox
           id="umfrage"
-          placeholder="Welche Umfrage?"
+          placeholder=""
           items={umfragenListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.ort ?? r.record_id),
@@ -489,7 +489,7 @@ export function AntwortenDialog({ open, onClose, onSubmit, defaultValues, record
         <Label htmlFor="termin_1">{labelFor('termin_1')}</Label>
         <Combobox
           id="termin_1"
-          placeholder="Welcher Termin?"
+          placeholder=""
           items={terminvorschlaegeListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.beginn ?? r.record_id),

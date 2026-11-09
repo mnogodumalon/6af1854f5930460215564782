@@ -8,7 +8,7 @@ const CONFIGURED_ENVIRONMENT = "";
  *  the deployment's `version.json`. Exported so `lib/stale-bundle.ts` can tell a
  *  tab that is merely older than the live deployment apart from one whose asset
  *  is genuinely gone. One source for the fact; do not inject it a second time. */
-export const BUNDLE_VERSION = "0.0.545";
+export const BUNDLE_VERSION = "0.0.546";
 const APPGROUP_ID = "6af1854f5930460215564782";
 
 /** Where this bundle runs decides the environment, not the build: the same

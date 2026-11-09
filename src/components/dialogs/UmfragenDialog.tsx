@@ -354,7 +354,7 @@ export function UmfragenDialog({ open, onClose, onSubmit, defaultValues, recordI
         <Label htmlFor="beschreibung">{labelFor('beschreibung')}</Label>
         <Textarea
           id="beschreibung"
-          placeholder="Worum geht es bei der Umfrage?"
+          placeholder=""
           value={fields.beschreibung ?? ''}
           onChange={e => setFields(f => ({ ...f, beschreibung: e.target.value }))}
           rows={3}
@@ -366,7 +366,7 @@ export function UmfragenDialog({ open, onClose, onSubmit, defaultValues, recordI
         <Label htmlFor="ort">{labelFor('ort')}</Label>
         <Input
           id="ort"
-          placeholder="z. B. Büro Berlin"
+          placeholder=""
           value={fields.ort ?? ''}
           onChange={e => setFields(f => ({ ...f, ort: e.target.value }))}
         />
@@ -413,7 +413,7 @@ export function UmfragenDialog({ open, onClose, onSubmit, defaultValues, recordI
         <Label htmlFor="titel">{labelFor('titel')} <span className="text-destructive" aria-hidden="true">*</span></Label>
         <Input
           id="titel"
-          placeholder="z. B. Teamessen im Mai"
+          placeholder=""
           value={fields.titel ?? ''}
           onChange={e => setFields(f => ({ ...f, titel: e.target.value }))}
           required
@@ -428,7 +428,7 @@ export function UmfragenDialog({ open, onClose, onSubmit, defaultValues, recordI
         <Label htmlFor="finaler_termin">{labelFor('finaler_termin')}</Label>
         <Combobox
           id="finaler_termin"
-          placeholder="Welcher Termin gilt?"
+          placeholder=""
           items={terminvorschlaegeListAll.map(r => ({
             id: r.record_id,
             label: String(r.fields.beginn ?? r.record_id),

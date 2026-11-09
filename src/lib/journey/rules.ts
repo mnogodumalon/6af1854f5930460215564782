@@ -320,7 +320,7 @@ export const DISPLAY_FIELDS: Record<EntityKey, string[]> = {
     "beginn"
   ],
   "antworten": [
-    "teilnehmer_vorname"
+    "zeilen_kennung"
   ]
 };
 

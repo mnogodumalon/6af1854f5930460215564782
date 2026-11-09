@@ -267,6 +267,23 @@ function checkWrittenKeys(slug, src, endpoints, file, sink) {
     sink.push(`${file}:${w.line}: page '${slug}' writes '${w.entity ?? 'the record'}.${w.key}' through ${w.how} — the grant does not list it (${[...(allowed || [])].join(', ') || 'nothing'}), the live POST answers 400. Never move a refused field to another write path: remove the write, or the page needs the field in the plan (report it)`);
   }
 }
+// EF-35 (Doodle): a sticky first column with the name inputs, 402 px wide, covered the whole phone
+// width — no vote button could be reached at any scroll position. A sticky cell in a scrolling
+// table carries text only and stays narrow (max-w ≤ 40vw); the person's inputs go above the table.
+function checkStickyColumn(slug, src, file, sink, warnSink) {
+  for (const m of src.matchAll(/<(\w+)\b[^>]*?className=(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})[^>]*>/g)) {
+    const cls = m[2] ?? m[3] ?? m[4] ?? '';
+    if (!/(^|\s)sticky(\s|$)/.test(cls) || !/(^|\s)(left|start)-/.test(cls)) continue;
+    const close = src.indexOf(`</${m[1]}>`, m.index + m[0].length);
+    const inner = close > 0 ? src.slice(m.index + m[0].length, close) : '';
+    const line = src.slice(0, m.index).split('\n').length;
+    if (/<(input|Input|textarea|Textarea|Bound|Field|select|Select|Checkbox|RadioGroup)\b/.test(inner)) {
+      sink.push(`${file}:${line}: page '${slug}' puts an input into a sticky column (<${m[1]} className="…sticky…">) — on a phone it covers the scrolling cells and no button behind it can be reached; ask the person's name ABOVE the table, the sticky column shows text only`);
+    } else if (!/max-w-\[(\d+)vw\]/.test(cls) || Number((/max-w-\[(\d+)vw\]/.exec(cls) || [])[1]) > 40) {
+      warnSink.push(`${file}:${line}: page '${slug}' has a sticky column without a narrow width — give it max-w-[40vw] (or less) so the scrolling cells stay reachable on a phone`);
+    }
+  }
+}
 // EF-31: freshRef reads a REFERENCE; on a yes/no it never returns the id and refuses every send
 function checkFreshKinds(slug, src, file, sink) {
   if (!appMeta) return;
@@ -926,6 +943,7 @@ if (pageOnly) {
     }
     for (const ep of frag.endpoints) checkEndpoint(slug, ep, stagedSrc, fileArg, f);
     checkWrittenKeys(slug, stagedSrc, frag.endpoints, fileArg, errors);
+    checkStickyColumn(slug, stagedSrc, fileArg, errors, warnings);
     checkSiblingLinks(slug, stagedSrc, fileArg, errors);
     checkVisitorKey(slug, stagedSrc, fileArg, errors);
     checkFreshPointer(slug, stagedSrc, fileArg, errors);
@@ -1042,6 +1060,7 @@ for (const [slug, page] of surfacePages) {
   if (src) checkLinkedChildren(slug, src, `${PAGES_DIR}/${page.component}.tsx`, warnings);
   if (src) checkFreshKinds(slug, src, `${PAGES_DIR}/${page.component}.tsx`, errors);
   if (src) checkWrittenKeys(slug, src, page.endpoints, `${PAGES_DIR}/${page.component}.tsx`, errors);
+  if (src) checkStickyColumn(slug, src, `${PAGES_DIR}/${page.component}.tsx`, warnings, warnings);
   // PV-3: the plan ordered a link parameter — the surface must declare it, same entity
   const planned = planLinkParam.get(slug);
   if (planned && (!page.link_param || page.link_param.entity !== planned.entity)) {

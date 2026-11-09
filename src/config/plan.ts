@@ -37,13 +37,13 @@ export const NOUNS: Record<string, { one: string; many: string }> = {
     "one": "Umfrage",
     "many": "Umfragen"
   },
-  "terminvorschlaege": {
-    "one": "Terminvorschlag",
-    "many": "Terminvorschläge"
-  },
   "antworten": {
     "one": "Antwort",
     "many": "Antworten"
+  },
+  "terminvorschlaege": {
+    "one": "Terminvorschlag",
+    "many": "Terminvorschläge"
   }
 };
 
@@ -79,15 +79,15 @@ export interface FlowOwner { slug: string; value?: string }
  *  (check-dashboard gate 25). */
 export const FLOW_OWNED: Record<string, Record<string, FlowOwner[]>> = {
   "umfragen": {
-    "finaler_termin": [
-      {
-        "slug": "umfrage-abschliessen"
-      }
-    ],
     "status": [
       {
         "slug": "umfrage-abschliessen",
         "value": "geschlossen"
+      }
+    ],
+    "finaler_termin": [
+      {
+        "slug": "umfrage-abschliessen"
       }
     ]
   }

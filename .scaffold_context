@@ -14,7 +14,7 @@ index.css is pre-generated with the shared design system. Do NOT edit it.
 src/config/ai-features.ts is editable — set AI_PHOTO_SCAN['Entity'] = true to enable photo scan in dialogs.
 NEVER use Bash cat/echo/heredoc for file operations — always use Read/Write/Edit tools.
 
-Generated 172 scaffold files:
+Generated 167 scaffold files:
   - src/App.tsx
   - src/i18n/index.ts
   - src/i18n/common.ts
@@ -24,7 +24,6 @@ Generated 172 scaffold files:
   - src/types/la-widgets.d.ts
   - src/components/PageShell.tsx
   - src/components/ActionsSidebar.tsx
-  - src/pages/DashboardOverview.tsx
   - src/pages/DashboardReady.tsx
   - src/components/DashboardStates.tsx
   - src/components/ConfirmDialog.tsx
@@ -54,9 +53,6 @@ Generated 172 scaffold files:
   - src/components/DatePicker.tsx
   - .placeholder-tasks.json
   - src/config/form-enhancements/types.ts
-  - src/config/form-enhancements/Umfragen.ts
-  - src/config/form-enhancements/Terminvorschlaege.ts
-  - src/config/form-enhancements/Antworten.ts
   - scripts/parse-formulas.mjs
   - scripts/apply-placeholders.mjs
   - src/config/intents.ts
@@ -131,7 +127,6 @@ Generated 172 scaffold files:
   - src/lib/ai.ts
   - src/components/VersionCheck.tsx
   - src/components/AttachmentsSection.tsx
-  - src/config/ai-features.ts
   - src/lib/formatters.ts
   - src/lib/polish.ts
   - src/hooks/useDashboardData.ts

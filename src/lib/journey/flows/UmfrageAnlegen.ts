@@ -1,8 +1,8 @@
 /**
  * useUmfrageAnlegenFlow — the plumbing of the flow « Umfrage anlegen », generated from the plan.
  *
- * Writes `umfragen`: asks `titel`, `beschreibung`, `ort`; sets `status` itself.
-Writes `terminvorschlaege` SEVERAL times — one record per entry of `flow.lists.terminvorschlaege`; the form is the editor of one entry: asks `beginn`, `ende`; links `umfrage` ← the created `umfragen`.
+ * Writes `umfragen`: asks `ort`, `titel`, `beschreibung`; sets `status` itself.
+Writes `terminvorschlaege` SEVERAL times — one record per entry of `flow.lists.terminvorschlaege`; the form is the editor of one entry: asks `ende`, `beginn`; links `umfrage` ← the created `umfragen`.
  * The hook OWNS: the form(s) with exactly these fields and the plan's required
  * ingredients, one record search per picked field (columns and filter from
  * the plan), and the submit plan with its fixed and derived values. A page
@@ -24,13 +24,13 @@ Writes `terminvorschlaege` SEVERAL times — one record per entry of `flow.lists
  *   filled editor as one more entry and needs at least one entry.
  *
  *   const flow = useUmfrageAnlegenFlow({
- *     steps: { titel: 1, beschreibung: 1, ort: 1, beginn: 2, ende: 2 },
+ *     steps: { ort: 1, titel: 1, beschreibung: 1, ende: 2, beginn: 2 },
  *   });
  *   <IntentWizardShell forms={flow.forms} draftKey={flow.draftKey} …>
+ *     <Bound form={flow.forms.umfragen} name="ort" />
  *     <Bound form={flow.forms.umfragen} name="titel" />
  *     <Bound form={flow.forms.umfragen} name="beschreibung" />
- *     <Bound form={flow.forms.umfragen} name="ort" />
- *     <ListEntries list={flow.lists.terminvorschlaege}><Bound form={flow.forms.terminvorschlaege} name="beginn" /><Bound form={flow.forms.terminvorschlaege} name="ende" /></ListEntries>
+ *     <ListEntries list={flow.lists.terminvorschlaege}><Bound form={flow.forms.terminvorschlaege} name="ende" /><Bound form={flow.forms.terminvorschlaege} name="beginn" /></ListEntries>
  *     <StepNav onNext={() => flow.validateStep(n)} />
  *     {!flow.submit.done && <SummaryStep forms={flow.formList} submit={flow.submit} />}
  *     {flow.submit.result && <SuccessStep result={flow.submit.result} forms={flow.formList} submit={flow.submit} />}
@@ -95,16 +95,16 @@ function hasValues(form: StepForm): boolean {
 export function useUmfrageAnlegenFlow(options: UmfrageAnlegenFlowOptions = {}) {
   const steps = { ...DEFAULT_STEPS, ...(options.steps ?? {}) } as Record<string, number>;
   const umfragen = useStepForm('umfragen', {
-    fields: ["titel", "beschreibung", "ort"],
-    steps: only(steps, ["titel", "beschreibung", "ort"]) as Record<string, number>,
-    initial: only(options.initial as FormValues | undefined, ["titel", "beschreibung", "ort"]),
-    messages: only(options.messages as Record<string, string> | undefined, ["titel", "beschreibung", "ort"]),
+    fields: ["ort", "titel", "beschreibung"],
+    steps: only(steps, ["ort", "titel", "beschreibung"]) as Record<string, number>,
+    initial: only(options.initial as FormValues | undefined, ["ort", "titel", "beschreibung"]),
+    messages: only(options.messages as Record<string, string> | undefined, ["ort", "titel", "beschreibung"]),
   });
   const terminvorschlaege = useStepForm('terminvorschlaege', {
-    fields: ["beginn", "ende"],
-    steps: only(steps, ["beginn", "ende"]) as Record<string, number>,
-    initial: only(options.initial as FormValues | undefined, ["beginn", "ende"]),
-    messages: only(options.messages as Record<string, string> | undefined, ["beginn", "ende"]),
+    fields: ["ende", "beginn"],
+    steps: only(steps, ["ende", "beginn"]) as Record<string, number>,
+    initial: only(options.initial as FormValues | undefined, ["ende", "beginn"]),
+    messages: only(options.messages as Record<string, string> | undefined, ["ende", "beginn"]),
   });
   const [terminvorschlaegeEntries, setTerminvorschlaegeEntries] = useState<ListEntry[]>(() => readJourneyExtra<ListEntry[]>('umfrage-anlegen', 'list:terminvorschlaege') ?? []);
   useEffect(() => { writeJourneyExtra('umfrage-anlegen', 'list:terminvorschlaege', terminvorschlaegeEntries.length ? terminvorschlaegeEntries : null); }, [terminvorschlaegeEntries]);
@@ -203,9 +203,9 @@ export function useUmfrageAnlegenFlow(options: UmfrageAnlegenFlowOptions = {}) {
       if (kind === 'bool') return raw === 'true' || raw === '1' || raw === 'ja';
       return raw;
     };
+    { const v = linkedParams.get('ort'); if (v !== null && isEmptyValue(umfragen.get('ort'))) (umfragen.set as (k: string, v: unknown) => void)('ort', coerce(umfragen, 'ort', v)); }
     { const v = linkedParams.get('titel'); if (v !== null && isEmptyValue(umfragen.get('titel'))) (umfragen.set as (k: string, v: unknown) => void)('titel', coerce(umfragen, 'titel', v)); }
     { const v = linkedParams.get('beschreibung'); if (v !== null && isEmptyValue(umfragen.get('beschreibung'))) (umfragen.set as (k: string, v: unknown) => void)('beschreibung', coerce(umfragen, 'beschreibung', v)); }
-    { const v = linkedParams.get('ort'); if (v !== null && isEmptyValue(umfragen.get('ort'))) (umfragen.set as (k: string, v: unknown) => void)('ort', coerce(umfragen, 'ort', v)); }
     return () => { on = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per link
   }, []);
@@ -235,7 +235,7 @@ export function useUmfrageAnlegenFlow(options: UmfrageAnlegenFlowOptions = {}) {
   /** Validate every field the wizard asks in step `n` — for StepNav.onNext. */
   const validateStep = (n: number): boolean =>
     formList.every(f => f.validate(f.keys.filter(k => steps[k] === n)))    // the list's step: a filled editor is taken as one more entry; at least one entry is needed
-    && (steps['beginn'] !== n || (hasValues(terminvorschlaege) ? lists.terminvorschlaege.add() : terminvorschlaegeEntries.length > 0 || terminvorschlaege.validate()));
+    && (steps['ende'] !== n || (hasValues(terminvorschlaege) ? lists.terminvorschlaege.add() : terminvorschlaegeEntries.length > 0 || terminvorschlaege.validate()));
   const reset = () => { submit.reset(); formList.forEach(f => f.reset()); terminvorschlaege.reset(); setTerminvorschlaegeEntries([]); };
 
   return {

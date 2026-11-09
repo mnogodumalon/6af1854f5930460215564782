@@ -43,8 +43,8 @@ export interface IntentLink {
 
 export const INTENTS: IntentLink[] = [
   // <custom:intents>
-  { path: '/intents/umfrage-anlegen', label: { de: 'Umfrage anlegen', en: 'Create poll' }, icon: IconCalendarPlus, description: 'Eine Umfrage mit Titel, Beschreibung, Ort und mehreren Terminvorschlägen anlegen.' },
-  { path: '/intents/umfrage-abschliessen', label: { de: 'Finalen Termin festlegen und Umfrage schließen', en: 'Set final date and close poll' }, icon: IconCircleCheck, description: 'Für eine offene Umfrage den finalen Termin wählen und die Umfrage schließen.' },
+  { path: '/intents/umfrage-anlegen', label: { de: 'Umfrage anlegen', en: 'Create poll' }, icon: IconCalendarPlus, description: { de: 'Eine Umfrage mit Titel, Beschreibung, Ort und mehreren Terminvorschlägen anlegen.', en: 'Create a poll with a title, description, location, and multiple proposed dates.' } },
+  { path: '/intents/umfrage-abschliessen', label: { de: 'Finalen Termin festlegen und Umfrage schließen', en: 'Set final date and close poll' }, icon: IconCircleCheck, description: { de: 'Für eine offene Umfrage den finalen Termin wählen und die Umfrage schließen.', en: 'Choose the final date for an open poll and close the poll.' } },
   // </custom:intents>
 ];
 
@@ -64,5 +64,5 @@ export const INTENTS_PENDING = false;
  * pulsing "werden erstellt …" in every deployed Phase-1 bundle forever — no
  * code path redeploys Phase 1 without the flag (live 03.09.2026).
  */
-export const INTENTS_PENDING_SINCE: string | null = '2026-11-09T08:35:23+00:00';
+export const INTENTS_PENDING_SINCE: string | null = null;
 export const PENDING_MAX_MINUTES = 30;

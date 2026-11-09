@@ -119,6 +119,88 @@ const apps = (appMeta && appMeta.apps) || {};
 // blocks the example input is red too, not a warning, because the Soll says
 // the input belongs there (G-3, 03.11.2026; before: a repair without a Soll
 // weakened the Soll, B5).
+// ── Every way a page WRITES a field (EF-33, Doodle 0.0.541) ─────────────────
+// A repair hid `auswahl` in a plan step's `values` after check-plan refused it as a visitor
+// field — the grant did not list it and the live POST got 400. What a page writes is: the
+// form's `fields` (useStepForm), a plan step's `values` and `link` (useJourneySubmit), and a
+// direct createPublicRecord payload. Returns [{ entity|null, key, how, line }].
+function wkMatchClose(src, open) {
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === '{' || ch === '(' || ch === '[') depth++;
+    else if (ch === '}' || ch === ')' || ch === ']') { depth--; if (depth === 0) return i; }
+  }
+  return -1;
+}
+function wkEnclosingOpen(src, at) {
+  let depth = 0;
+  for (let i = at; i >= 0; i--) {
+    const ch = src[i];
+    if (ch === '}' || ch === ')' || ch === ']') depth++;
+    else if (ch === '{' || ch === '(' || ch === '[') { if (depth === 0) return ch === '{' ? i : -1; depth--; }
+  }
+  return -1;
+}
+function wkTopKeys(obj) {
+  const body = obj.slice(1, -1);
+  const parts = [];
+  let depth = 0, start = 0, quote = null;
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (quote) { if (ch === quote && body[i - 1] !== '\\') quote = null; continue; }
+    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
+    if ('([{'.includes(ch)) depth++;
+    else if (')]}'.includes(ch)) depth--;
+    else if (ch === ',' && depth === 0) { parts.push(body.slice(start, i)); start = i + 1; }
+  }
+  parts.push(body.slice(start));
+  const keys = [];
+  for (const p of parts) {
+    const t = p.trim();
+    if (!t || t.startsWith('...') || t.startsWith('[')) continue;
+    const m = /^['"]?([A-Za-z_$][\w$]*)['"]?\s*(?::|$)/.exec(t);
+    if (m) keys.push(m[1]);
+  }
+  return keys;
+}
+function writtenKeys(src) {
+  const out = [];
+  const lineAt = (i) => src.slice(0, i).split('\n').length;
+  // a plan step: { key, entity: 'x', …, values: {…} | () => ({…}), link: {…} }
+  for (const m of src.matchAll(/\bentity\s*:\s*['"](\w+)['"]/g)) {
+    const open = wkEnclosingOpen(src, m.index - 1);
+    if (open < 0) continue;
+    const close = wkMatchClose(src, open);
+    if (close < 0) continue;
+    const obj = src.slice(open, close + 1);
+    for (const how of ['values', 'link']) {
+      const vm = new RegExp(`\\b${how}\\s*:\\s*(?:\\([^)]*\\)\\s*(?::\\s*[\\w.<>\\[\\], ]+)?\\s*=>\\s*\\(?\\s*)?\\{`).exec(obj);
+      if (!vm) continue;
+      const vOpen = open + vm.index + vm[0].length - 1;
+      const vClose = wkMatchClose(src, vOpen);
+      if (vClose < 0) continue;
+      for (const key of wkTopKeys(src.slice(vOpen, vClose + 1))) out.push({ entity: m[1], key, how, line: lineAt(vOpen) });
+    }
+  }
+  // the form's fields: useStepForm('x', { fields: ['a', 'b'] })
+  for (const m of src.matchAll(/\buseStepForm\(\s*['"](\w+)['"]\s*,\s*\{/g)) {
+    const open = m.index + m[0].length - 1;
+    const close = wkMatchClose(src, open);
+    if (close < 0) continue;
+    const fm = /\bfields\s*:\s*\[([^\]]*)\]/.exec(src.slice(open, close + 1));
+    if (!fm) continue;
+    for (const k of fm[1].matchAll(/['"](\w+)['"]/g)) out.push({ entity: m[1], key: k[1], how: 'form', line: lineAt(m.index) });
+  }
+  // a direct createPublicRecord(cfg, page, { … })
+  for (const m of src.matchAll(/\bcreatePublicRecord\(\s*[^,]+,\s*[^,]+,\s*\{/g)) {
+    const open = m.index + m[0].length - 1;
+    const close = wkMatchClose(src, open);
+    if (close < 0) continue;
+    for (const key of wkTopKeys(src.slice(open, close + 1))) out.push({ entity: null, key, how: 'createPublicRecord', line: lineAt(m.index) });
+  }
+  return out;
+}
 const planData = readJson('.plan.json');
 function plannedFields(page) {
   if (!planData) return [];
@@ -139,10 +221,18 @@ function plannedFields(page) {
     // a reference the page sets itself from its linked record (the active interaction — a
     // `must_equal` check of the page; Bau 11 read „no control“ for exactly that)
     const pageSets = new Set((pg && pg.page_sets) || []);
+    // EF-36 (Doodle): a field the page's code sets itself — a plan step's `values`/`link` (the poll from the
+    // link, a row id the page makes) — is no visitor input; demanding a control made the repair print a
+    // machine key on the page
+    let codeSets = new Set();
+    try {
+      const src = readFileSync(join(ROOT, page.file), 'utf8');
+      codeSets = new Set(writtenKeys(src).filter(w => w.how === 'values' || w.how === 'link').map(w => `${w.entity}.${w.key}`));
+    } catch { /* no source — the Soll stays as it is */ }
     for (const c of (pg && pg.creates) || []) {
       for (const [k, src] of Object.entries(c.fields || {})) {
         if (!(String(src).startsWith('user') || src === 'picked')) continue;
-        if (pageSets.has(`${c.entity}.${k}`)) continue;
+        if (pageSets.has(`${c.entity}.${k}`) || codeSets.has(`${c.entity}.${k}`)) continue;
         if (src === 'picked') {
           const target = entityOfAppId(targetAppId(control(c.entity, k)));
           if (target && (target === linkEntity || (created.has(target) && target !== c.entity))) continue;

@@ -415,7 +415,7 @@ if (gridIdx >= 0) {
 // owner's prompt asked for). The page opens the flow for the record:
 // flowActionFor(entity, field, id, value) from '@/config/plan'.
 {
-  const OWNED = {"updateUmfragenEntry": {"entity": "umfragen", "fields": {"finaler_termin": [{"slug": "umfrage-abschliessen"}], "status": [{"slug": "umfrage-abschliessen", "value": "geschlossen"}]}}};
+  const OWNED = {"updateUmfragenEntry": {"entity": "umfragen", "fields": {"status": [{"slug": "umfrage-abschliessen", "value": "geschlossen"}], "finaler_termin": [{"slug": "umfrage-abschliessen"}]}}};
   const callRe = /\b(update\w+Entry)\s*\(/g;
   let m;
   const hits = [];
@@ -447,7 +447,7 @@ if (gridIdx >= 0) {
 // says „not available“ (Abnahme 5, 04.11.2026: the moderation board's move to
 // FREIGEGEBEN never reached the built flow).
 {
-  const OWNED = {"updateUmfragenEntry": {"entity": "umfragen", "fields": {"finaler_termin": [{"slug": "umfrage-abschliessen"}], "status": [{"slug": "umfrage-abschliessen", "value": "geschlossen"}]}}};
+  const OWNED = {"updateUmfragenEntry": {"entity": "umfragen", "fields": {"status": [{"slug": "umfrage-abschliessen", "value": "geschlossen"}], "finaler_termin": [{"slug": "umfrage-abschliessen"}]}}};
   const owned = new Set();
   for (const own of Object.values(OWNED)) for (const f of Object.keys(own.fields)) owned.add(`${own.entity}.${f}`);
   const dead = [];
@@ -727,7 +727,7 @@ if (gridIdx >= 0) {
   }
   // 27b. EF-26 (Bau 16): two public pages open per event — the QR took the FIRST (the rating page)
   // instead of the feedback page. With several link pages for one entity every QR names its page.
-  const LINK_PAGES = {"umfragen": ["termin-abstimmen"]};
+  const LINK_PAGES = {};
   const noPage = [];
   for (const file of files) {
     const text = file === FILE ? code : stripCommentsKeepLayout(readFileSync(file, 'utf8'));
