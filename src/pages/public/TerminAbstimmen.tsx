@@ -257,7 +257,7 @@ export default function TerminAbstimmen() {
         {termine.length === 0 ? (
           <p className="text-sm text-muted-foreground">{tx('Noch keine Terminvorschläge.')}</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border">
+          <div className="relative overflow-x-auto rounded-xl border">
             <table className="w-full min-w-max border-collapse text-sm">
               <thead>
                 <tr className="bg-muted/50">

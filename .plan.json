@@ -146,8 +146,8 @@
         {
           "entity": "antworten",
           "fields": {
-            "umfrage": "user",
-            "termin_1": "user",
+            "umfrage": "picked",
+            "termin_1": "picked",
             "antwort_1": "user",
             "zeilen_kennung": "user",
             "teilnehmer_vorname": "user",
