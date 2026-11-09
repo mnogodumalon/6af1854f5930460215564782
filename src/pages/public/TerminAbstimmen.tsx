@@ -35,6 +35,56 @@ const ANSWER_STYLE: Record<Answer, string> = {
 const NAME_COL = 'sticky left-0 z-10 p-2 break-words align-middle';
 const NAME_COL_STYLE = { width: 'min(35vw, 9rem)', maxWidth: 'min(35vw, 9rem)' } as const;
 
+const pad = (n: number, len = 2) => String(n).padStart(len, '0');
+
+function icsEscape(text: string): string {
+  return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r\n|\r|\n/g, '\\n');
+}
+
+// Local wall-clock value of a datetime field ("2026-11-09T18:00…") → "20261109T180000" (Europe/Berlin via TZID).
+function icsLocal(iso: string | null): string | null {
+  const m = iso?.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  return m ? `${m[1]}${m[2]}${m[3]}T${m[4]}${m[5]}00` : null;
+}
+
+function buildIcs(ev: { uid: string; title: string; ort: string; beschreibung: string; start: string; end: string }): string {
+  const now = new Date();
+  const stamp = `${pad(now.getUTCFullYear(), 4)}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Termin abstimmen//DE',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Berlin',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'TZNAME:CEST',
+    'DTSTART:19700329T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'DTSTART:19701025T030000',
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    tx`UID:${ev.uid}@termin-abstimmen`,
+    `DTSTAMP:${stamp}`,
+    tx`DTSTART;TZID=Europe/Berlin:${ev.start}`,
+    tx`DTEND;TZID=Europe/Berlin:${ev.end}`,
+    `SUMMARY:${icsEscape(ev.title)}`,
+  ];
+  if (ev.ort) lines.push(`LOCATION:${icsEscape(ev.ort)}`);
+  if (ev.beschreibung) lines.push(`DESCRIPTION:${icsEscape(ev.beschreibung)}`);
+  lines.push('END:VEVENT', 'END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
+}
+
 function AnswerIcon({ a, size = 16 }: { a: Answer; size?: number }) {
   if (a === 'ja') return <IconCheck size={size} />;
   if (a === 'vielleicht') return <IconQuestionMark size={size} />;
@@ -55,6 +105,7 @@ export default function TerminAbstimmen() {
   const [rowId, setRowId] = useState(newRowId);
   const [message, setMessage] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPublicPagesConfig(SLUG)
@@ -172,12 +223,21 @@ export default function TerminAbstimmen() {
 
   const onSend = async () => {
     setMessage(null);
+    setNameError(null);
     if (!vorname.trim() || !nachname.trim()) {
       setMessage(tx('Bitte trage Vor- und Nachname ein.'));
       return;
     }
     if (plan.length === 0) {
       setMessage(tx('Bitte wähle für mindestens einen Termin eine Antwort.'));
+      return;
+    }
+    const norm = (v: string) => v.trim().toLowerCase();
+    const taken = antworten.some(
+      r => norm(fieldText(r, 'teilnehmer_vorname')) === norm(vorname) && norm(fieldText(r, 'teilnehmer_nachname')) === norm(nachname),
+    );
+    if (taken) {
+      setNameError(tx('Dieser Name hat schon abgestimmt. Bitte einen anderen Namen verwenden.'));
       return;
     }
     setSent(false);
@@ -215,6 +275,22 @@ export default function TerminAbstimmen() {
   const ort = fieldText(umfrage, 'ort');
   const terminLabel = (t: JourneyRecord) => `${fieldText(t, 'beginn')} – ${fieldText(t, 'ende')}`;
 
+  const downloadIcs = () => {
+    if (!finalTermin) return;
+    const start = icsLocal(fieldDate(finalTermin, 'beginn'));
+    const end = icsLocal(fieldDate(finalTermin, 'ende'));
+    if (!start || !end) return;
+    const text = buildIcs({ uid: finalTermin.id, title: fieldText(umfrage, 'titel'), ort, beschreibung, start, end });
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'termin.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <PublicShell title={fieldText(umfrage, 'titel')} description={beschreibung || undefined} wide>
       <div className="space-y-5">
@@ -226,6 +302,11 @@ export default function TerminAbstimmen() {
             <p className="mt-1 text-emerald-900">
               {finalTermin ? tx`Finaler Termin: ${terminLabel(finalTermin)}` : tx('Der finale Termin steht noch nicht fest.')}
             </p>
+            {finalTermin && (
+              <Button type="button" variant="outline" className="mt-3" onClick={downloadIcs}>
+                {tx('In den Kalender (.ics)')}
+              </Button>
+            )}
           </div>
         )}
 
@@ -235,7 +316,7 @@ export default function TerminAbstimmen() {
             <input type="hidden" name="zeilen_kennung" value={rowId} />
             <Input
               value={vorname}
-              onChange={e => setVorname(e.target.value)}
+              onChange={e => { setVorname(e.target.value); setNameError(null); }}
               placeholder={tx('Vorname')}
               aria-label={tx('Vorname')}
               autoComplete="given-name"
@@ -244,13 +325,16 @@ export default function TerminAbstimmen() {
             />
             <Input
               value={nachname}
-              onChange={e => setNachname(e.target.value)}
+              onChange={e => { setNachname(e.target.value); setNameError(null); }}
               placeholder={tx('Nachname')}
               aria-label={tx('Nachname')}
               autoComplete="family-name"
               maxLength={200}
               className="w-full"
             />
+            {nameError && (
+              <p role="alert" className="text-sm text-destructive sm:col-span-2">{nameError}</p>
+            )}
           </div>
         )}
 
