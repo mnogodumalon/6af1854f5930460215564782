@@ -31,6 +31,10 @@ const ANSWER_STYLE: Record<Answer, string> = {
   nein: 'bg-rose-500 text-white border-rose-500',
 };
 
+// Fixed first column: names only, at most 35 % of the screen and 9rem, text may wrap.
+const NAME_COL = 'sticky left-0 z-10 p-2 break-words align-middle';
+const NAME_COL_STYLE = { width: 'min(35vw, 9rem)', maxWidth: 'min(35vw, 9rem)' } as const;
+
 function AnswerIcon({ a, size = 16 }: { a: Answer; size?: number }) {
   if (a === 'ja') return <IconCheck size={size} />;
   if (a === 'vielleicht') return <IconQuestionMark size={size} />;
@@ -214,6 +218,9 @@ export default function TerminAbstimmen() {
   return (
     <PublicShell title={fieldText(umfrage, 'titel')} description={beschreibung || undefined} wide>
       <div className="space-y-5">
+        <p className="text-sm text-muted-foreground" data-key="umfrage">
+          {tx('Umfrage')}: <span className="font-medium text-foreground">{fieldText(umfrage, 'titel')}</span>
+        </p>
         {ort && <p className="text-sm text-muted-foreground">{tx('Ort')}: <span className="font-medium text-foreground">{ort}</span></p>}
 
         {closed && (
@@ -225,6 +232,29 @@ export default function TerminAbstimmen() {
           </div>
         )}
 
+        {!closed && termine.length > 0 && (
+          <div className="grid grid-cols-1 gap-3 rounded-xl border bg-muted/20 p-3 sm:grid-cols-2">
+            <Input
+              value={vorname}
+              onChange={e => setVorname(e.target.value)}
+              placeholder={tx('Vorname')}
+              aria-label={tx('Vorname')}
+              autoComplete="given-name"
+              maxLength={200}
+              className="w-full"
+            />
+            <Input
+              value={nachname}
+              onChange={e => setNachname(e.target.value)}
+              placeholder={tx('Nachname')}
+              aria-label={tx('Nachname')}
+              autoComplete="family-name"
+              maxLength={200}
+              className="w-full"
+            />
+          </div>
+        )}
+
         {termine.length === 0 ? (
           <p className="text-sm text-muted-foreground">{tx('Noch keine Terminvorschläge.')}</p>
         ) : (
@@ -232,14 +262,14 @@ export default function TerminAbstimmen() {
             <table className="w-full min-w-max border-collapse text-sm">
               <thead>
                 <tr className="bg-muted/50">
-                  <th className="sticky left-0 z-10 bg-muted p-2 text-left font-medium">{tx('Name')}</th>
+                  <th className={`${NAME_COL} bg-muted text-left font-medium`} style={NAME_COL_STYLE}>{tx('Name')}</th>
                   {termine.map(t => {
                     const best = !closed && maxJa > 0 && counts[t.id].ja === maxJa;
                     const isFinal = closed && t.id === finalId;
                     return (
                       <th
                         key={t.id}
-                        className={`min-w-[7.5rem] p-2 text-center font-medium ${best || isFinal ? 'bg-emerald-100 text-emerald-900' : ''}`}
+                        className={`min-w-[9rem] p-2 text-center font-medium ${best || isFinal ? 'bg-emerald-100 text-emerald-900' : ''}`}
                       >
                         <div>{fieldText(t, 'beginn')}</div>
                         <div className="text-xs font-normal text-muted-foreground">{tx('bis')} {fieldText(t, 'ende')}</div>
@@ -251,7 +281,7 @@ export default function TerminAbstimmen() {
               <tbody>
                 {rows.map(row => (
                   <tr key={row.id} className="border-t">
-                    <td className="sticky left-0 z-10 bg-background p-2 font-medium">{row.name}</td>
+                    <td className={`${NAME_COL} bg-background font-medium`} style={NAME_COL_STYLE}>{row.name}</td>
                     {termine.map(t => {
                       const a = row.byTermin[t.id];
                       return (
@@ -270,25 +300,8 @@ export default function TerminAbstimmen() {
                 ))}
                 {!closed && (
                   <tr className="border-t-2 bg-muted/20 align-top">
-                    <td className="sticky left-0 z-10 min-w-[10rem] bg-muted p-2">
-                      <div className="space-y-1.5">
-                        <Input
-                          value={vorname}
-                          onChange={e => setVorname(e.target.value)}
-                          placeholder={tx('Vorname')}
-                          aria-label={tx('Vorname')}
-                          autoComplete="given-name"
-                          maxLength={200}
-                        />
-                        <Input
-                          value={nachname}
-                          onChange={e => setNachname(e.target.value)}
-                          placeholder={tx('Nachname')}
-                          aria-label={tx('Nachname')}
-                          autoComplete="family-name"
-                          maxLength={200}
-                        />
-                      </div>
+                    <td className={`${NAME_COL} bg-muted font-medium`} style={NAME_COL_STYLE}>
+                      {`${vorname} ${nachname}`.trim() || tx('Du')}
                     </td>
                     {termine.map(t => (
                       <td key={t.id} className="p-2 text-center" data-key="termin_1">
@@ -303,7 +316,7 @@ export default function TerminAbstimmen() {
                                 aria-checked={on}
                                 aria-label={a === 'ja' ? tx('Ja') : a === 'vielleicht' ? tx('Vielleicht') : tx('Nein')}
                                 onClick={() => setAnswers(prev => ({ ...prev, [t.id]: a }))}
-                                className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${on ? ANSWER_STYLE[a] : 'bg-background text-muted-foreground'}`}
+                                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${on ? ANSWER_STYLE[a] : 'bg-background text-muted-foreground'}`}
                               >
                                 <AnswerIcon a={a} />
                               </button>
@@ -317,7 +330,7 @@ export default function TerminAbstimmen() {
               </tbody>
               <tfoot>
                 <tr className="border-t bg-muted/30 text-xs">
-                  <td className="sticky left-0 z-10 bg-muted p-2 font-medium">{tx('Summe')}</td>
+                  <td className={`${NAME_COL} bg-muted font-medium`} style={NAME_COL_STYLE}>{tx('Summe')}</td>
                   {termine.map(t => {
                     const best = !closed && maxJa > 0 && counts[t.id].ja === maxJa;
                     return (
@@ -346,6 +359,9 @@ export default function TerminAbstimmen() {
             {sent && !submit.error && (
               <p role="status" className="text-sm font-medium text-emerald-700">{tx('Danke, deine Antwort ist gespeichert.')}</p>
             )}
+            <p className="text-xs text-muted-foreground" data-key="zeilen_kennung">
+              {tx('Eindeutige Kennung der Zeile')}: <span className="font-mono">{rowId}</span>
+            </p>
             <Button type="button" className="w-full sm:w-auto" disabled={submit.submitting} onClick={() => void onSend()}>
               {submit.submitting ? tx('Wird gespeichert …') : tx('Antwort speichern')}
             </Button>

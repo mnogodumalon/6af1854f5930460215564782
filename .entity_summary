@@ -52,13 +52,13 @@ There is NO `@/config/appIds`, no `@/config/lookupOptions` and no
 createRecordUrl from the service. Note the lowercase `l` in the service path.
 
 - Umfragen (umfragen): beschreibung^[string/textarea], ort^[string/text], status!^[lookup/radio: offen|geschlossen], titel!^[string/text], finaler_termin^[applookup/select]
-  ≡ 3 records at build time
+  ≡ 4 records at build time
   ◈ status → choice (2 options, ChoiceGroup) · finaler_termin → record (terminvorschlaege, EntitySelectStep)
   ⚙ getUmfragen() · getUmfragenEntry(id) · createUmfragenEntry(fields) · updateUmfragenEntry(id, fields) · deleteUmfragenEntry(id) · queryUmfragen({ filter, orderby, limit, offset, fields }) · countUmfragen(filter?)
   ✚ EnrichedUmfragen adds ONLY finaler_terminName — via enrichUmfragen(umfragen, { terminvorschlaegeMap }), all maps required
   → finaler_termin links to app_id 6af1853ef0ebf22cf710ea40
 - Terminvorschläge (terminvorschlaege): beginn!^[date/datetimeminute], ende!^[date/datetimeminute], umfrage!^[applookup/select]
-  ≡ 3 records at build time
+  ≡ 6 records at build time
   · beginn: A specific moment in time consisting of year, month, day, hour and minute (or `null`/`None`) The field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` (or `null`/`None`). For example: `2000-02-29T11:30`. For `POST`/`PUT`/`PATCH` requests the REST API uses a liberal parsing approach so that strings like `2026`, `February 29, 2000 12:34 MEST`, `letztes Jahr` etc. will be accepted as value datetime values. However this runs the risk of parsing ambiguous values incorrectly. To ensure reliable parsing it is best to use the canonical format specified above.
   · ende: A specific moment in time consisting of year, month, day, hour and minute (or `null`/`None`) The field value will be a string in the format `<YYYY>-<MM>-<DD>T<HH>:<MM>` (or `null`/`None`). For example: `2000-02-29T11:30`. For `POST`/`PUT`/`PATCH` requests the REST API uses a liberal parsing approach so that strings like `2026`, `February 29, 2000 12:34 MEST`, `letztes Jahr` etc. will be accepted as value datetime values. However this runs the risk of parsing ambiguous values incorrectly. To ensure reliable parsing it is best to use the canonical format specified above.
   ◈ beginn+ende → range candidate — YOU decide in .intents-staging/occupancy.json whether it is a stay, which applookup is the booked resource, which status keys do not occupy (AvailabilityRangePicker, form.range; blocked = occupancyFor()) · umfrage → record (umfragen, EntitySelectStep)
@@ -66,7 +66,7 @@ createRecordUrl from the service. Note the lowercase `l` in the service path.
   ✚ EnrichedTerminvorschlaege adds ONLY umfrageName — via enrichTerminvorschlaege(terminvorschlaege, { umfragenMap }), all maps required
   → umfrage links to app_id 6af1853aa47502b9c8d618de
 - Antworten (antworten): zeilen_kennung^[string/text] "Eindeutige Kennung der Zeile", teilnehmer_vorname!^[string/text] "Vorname", teilnehmer_nachname!^[string/text] "Nachname", antwort_1[lookup/radio: ja|vielleicht|nein] "Antwort zum Termin", umfrage!^[applookup/select], termin_1^[applookup/select] "Termin"
-  ≡ 3 records at build time
+  ≡ 8 records at build time
   ◈ antwort_1 → choice (3 options, ChoiceGroup) · umfrage → record (umfragen, EntitySelectStep) · termin_1 → record (terminvorschlaege, EntitySelectStep)
   ⚙ getAntworten() · getAntwortenEntry(id) · createAntwortenEntry(fields) · updateAntwortenEntry(id, fields) · deleteAntwortenEntry(id) · queryAntworten({ filter, orderby, limit, offset, fields }) · countAntworten(filter?)
   ✚ EnrichedAntworten adds ONLY umfrageName, termin_1Name — via enrichAntworten(antworten, { umfragenMap, terminvorschlaegeMap }), all maps required
