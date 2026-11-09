@@ -1,0 +1,20 @@
+{
+  "UmfragenDialog.tsx": {
+    "beschreibung": "Worum geht es bei der Umfrage?",
+    "ort": "z. B. Büro Berlin",
+    "titel": "z. B. Teamessen im Mai",
+    "finaler_termin": "Welcher Termin gilt?"
+  },
+  "TerminvorschlaegeDialog.tsx": {
+    "beginn": "Wann beginnt der Termin?",
+    "ende": "Wann endet der Termin?",
+    "umfrage": "Welche Umfrage?"
+  },
+  "AntwortenDialog.tsx": {
+    "zeilen_kennung": "z. B. ANT-2026-001",
+    "teilnehmer_vorname": "z. B. Anna",
+    "teilnehmer_nachname": "z. B. Müller",
+    "umfrage": "Welche Umfrage?",
+    "termin_1": "Welcher Termin?"
+  }
+}

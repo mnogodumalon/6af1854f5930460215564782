@@ -1,0 +1,30 @@
+{
+  "pages": {
+    "en": {
+      "Alle Umfragen sind abgeschlossen.": "All polls are closed.",
+      "Besten Termin festlegen": "Set best date",
+      "Finaler Termin": "Final date",
+      "Keine Umfragen in dieser Ansicht.": "No polls in this view.",
+      "Keine anstehenden Terminvorschläge in offenen Umfragen.": "No upcoming date proposals in open polls.",
+      "Lege deine erste Umfrage an und teile den Link.": "Create your first poll and share the link.",
+      "Link kopieren": "Copy link",
+      "Link kopiert": "Link copied",
+      "Meiste Ja: {0} ({1})": "Most yes: {0} ({1})",
+      "Neue Umfrage": "New poll",
+      "Noch keine Ja-Antworten": "No yes responses yet",
+      "Noch keine Terminvorschläge": "No date proposals yet",
+      "Noch ohne finalen Termin: {0}.": "No final date yet: {0}.",
+      "Nächste Terminvorschläge": "Upcoming date proposals",
+      "Offen: {0}.": "Open: {0}.",
+      "Offene Umfragen": "Open polls",
+      "Ohne finalen Termin": "No final date",
+      "QR-Code": "QR code",
+      "Umfrage anlegen": "Create poll",
+      "Umfrage schließen": "Close poll",
+      "{0} Ja": "{0} yes",
+      "{0} Vielleicht": "{0} maybe",
+      "Öffnen": "Open"
+    }
+  },
+  "v": 1
+}
